@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File: res/drawable/ic_onboarding.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="300dp"
+    android:viewportWidth="300"
+    android:viewportHeight="300">
+
+    <!-- Book/Study Icon -->
+    <path
+        android:fillColor="#8B5CF6"
+        android:pathData="M50,80 L250,80 L250,220 L50,220 Z"/>
+
+    <path
+        android:fillColor="#06B6D4"
+        android:pathData="M60,90 L150,90 L150,150 L60,150 Z"/>
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M160,90 L240,90 L240,150 L160,150 Z"/>
+
+    <!-- Timer Symbol -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="8"
+        android:pathData="M150,40 A40,40 0 1,1 150,120 A40,40 0 1,1 150,40 Z"/>
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M150,60 L150,80 L170,80"/>
+
+    <!-- Target/Focus Lines -->
+    <path
+        android:strokeColor="#8B5CF6"
+        android:strokeWidth="4"
+        android:pathData="M60,170 L240,170 M60,190 L180,190 M60,210 L220,210"
+        android:strokeLineCap="round"/>
+</vector>
