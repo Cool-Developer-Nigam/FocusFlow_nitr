@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "511091865938",
+    "project_id": "focusflow-nitr",
+    "storage_bucket": "focusflow-nitr.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:511091865938:android:29726edb07f822ede0228b",
+        "android_client_info": {
+          "package_name": "com.nigdroid.focusflow_nitr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9JGYJxmT38opNWeDnvVHTf9emeFqA0po"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
