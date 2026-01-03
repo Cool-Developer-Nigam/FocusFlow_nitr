@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FocusFlow_nitr">
         <activity
+            android:name=".ui.auth.LoginActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.main.MainActivity"
             android:exported="true">
             <intent-filter>
