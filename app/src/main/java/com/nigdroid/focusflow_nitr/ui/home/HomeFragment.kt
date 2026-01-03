@@ -1,5 +1,6 @@
 package com.nigdroid.focusflow_nitr.ui.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,9 +12,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.nigdroid.focusflow_nitr.databinding.FragmentHomeBinding
 import com.nigdroid.focusflow_nitr.ui.adapter.SessionAdapter
+import com.nigdroid.focusflow_nitr.ui.focus.FocusSessionActivity
 import com.nigdroid.focusflow_nitr.utils.DateUtils
 import com.nigdroid.focusflow_nitr.utils.PermissionHelper
-import kotlin.getValue
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -40,6 +41,9 @@ class HomeFragment : Fragment() {
         setupRecyclerView()
         observeData()
         checkPermissions()
+
+        // Force refresh data
+        viewModel.refreshData()
     }
 
     private fun setupUI() {
@@ -52,43 +56,57 @@ class HomeFragment : Fragment() {
         binding.recentActivityRecycler.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = sessionAdapter
+            setHasFixedSize(true)
         }
     }
 
     private fun observeData() {
         // Observe focus energy
         viewModel.focusEnergy.observe(viewLifecycleOwner) { energy ->
+            android.util.Log.d("HomeFragment", "Focus energy updated: $energy")
             binding.energyProgress.progress = energy
             binding.energyValue.text = "$energy/100"
         }
 
         // Observe today's hours
         viewModel.todayHours.observe(viewLifecycleOwner) { (current, target) ->
+            android.util.Log.d("HomeFragment", "Today's hours updated: $current / $target")
+
             val currentFormatted = String.format("%.1f", current)
             val targetFormatted = String.format("%.0f", target)
 
             binding.progressHours.text = "${currentFormatted}h / ${targetFormatted}h"
 
-            val percentage = ((current / target) * 100).toInt().coerceIn(0, 100)
+            val percentage = if (target > 0) {
+                ((current / target) * 100).toInt().coerceIn(0, 100)
+            } else {
+                0
+            }
+
             binding.dailyProgress.progress = percentage
             binding.progressPercent.text = "$percentage%"
         }
 
         // Observe streak
         viewModel.streak.observe(viewLifecycleOwner) { streak ->
+            android.util.Log.d("HomeFragment", "Streak updated: $streak")
             binding.streakValue.text = "$streak days"
         }
 
         // Observe goals count
         viewModel.goals.observe(viewLifecycleOwner) { goals ->
+            android.util.Log.d("HomeFragment", "Goals updated: ${goals.size}")
             binding.activeGoalsCount.text = goals.size.toString()
         }
 
         // Observe recent sessions
         viewModel.recentSessions.observe(viewLifecycleOwner) { sessions ->
+            android.util.Log.d("HomeFragment", "Recent sessions updated: ${sessions.size}")
+
             if (sessions.isEmpty()) {
                 binding.emptyRecentActivity.visibility = View.VISIBLE
                 binding.recentActivityRecycler.visibility = View.GONE
+                binding.emptyRecentActivity.text = "No recent focus sessions yet.\n\nTap the + button below to start your first session!"
             } else {
                 binding.emptyRecentActivity.visibility = View.GONE
                 binding.recentActivityRecycler.visibility = View.VISIBLE
@@ -98,6 +116,8 @@ class HomeFragment : Fragment() {
 
         // Observe fatigue
         viewModel.fatigue.observe(viewLifecycleOwner) { fatigueScore ->
+            android.util.Log.d("HomeFragment", "Fatigue updated: $fatigueScore")
+
             val level = when {
                 fatigueScore <= 30 -> "🟢 Low"
                 fatigueScore <= 60 -> "🟡 Moderate"
@@ -141,6 +161,7 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        android.util.Log.d("HomeFragment", "onResume - refreshing data")
         viewModel.refreshData()
     }
 

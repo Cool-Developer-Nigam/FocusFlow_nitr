@@ -5,10 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.chip.Chip
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -33,13 +30,28 @@ class CreateGoalActivity : AppCompatActivity() {
     private var selectedDeadline: Long = 0
     private val selectedApps = mutableListOf<String>()
 
-    // Common productive apps
+    // School-friendly productive apps for students
     private val productiveApps = listOf(
-        "Khan Academy", "Duolingo", "Coursera", "Udemy",
-        "Google Classroom", "Microsoft Teams", "Zoom",
-        "Notion", "Evernote", "Google Docs", "Microsoft Word",
-        "Calculator", "Google Translate", "Dictionary",
-        "LinkedIn Learning", "Skillshare", "edX"
+        // Learning & Education
+        "Unacademy","Physics Wallah","Khan Academy", "Duolingo", "Photomath", "Brainly",
+        "Quizlet", "Google Classroom", "Byju's",
+
+        // Study Tools
+        "Notion", "Evernote", "Google Keep", "Microsoft OneNote",
+        "Forest - Focus Timer", "Study Bunny", "My Study Life",
+
+        // Subject Specific
+        "Chemistry Lab", "Physics Toolbox", "GeoGebra",
+        "WolframAlpha", "Google Translate", "Dictionary.com",
+
+        // Reading & Books
+        "Kindle", "Google Books", "Audible", "Scribd",
+
+        // Communication (School)
+        "Google Meet", "Zoom", "Microsoft Teams",
+
+        // Productivity
+        "Google Docs", "Google Drive", "Todoist", "Google Calendar","Google Chrome"
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,16 +75,37 @@ class CreateGoalActivity : AppCompatActivity() {
     }
 
     private fun setupCategoryDropdown() {
+        // School-friendly categories with emojis
         val categories = arrayOf(
-            "Academic - Computer Science",
-            "Academic - Mathematics",
-            "Academic - Languages",
-            "Academic - Science",
-            "Professional Development",
-            "Personal Learning",
-            "Skill Building",
-            "Test Preparation",
-            "Other"
+            // Core Subjects
+            "📚 Mathematics",
+            "🔬 Science - Physics",
+            "🔬 Science - Chemistry",
+            "🔬 Science - Biology",
+            "💻 Computer Science",
+            "🌍 Social Studies/History",
+            "🗣️ English/Language Arts",
+            "🌏 Foreign Language",
+
+            // Skills & Activities
+            "🎨 Art & Creativity",
+            "🎵 Music",
+            "⚽ Sports & Fitness",
+            "📖 Reading & Literature",
+
+            // Exams & Tests
+            "📝 Exam Preparation",
+            "🎯 Assignment/Project Work",
+            "📊 Test Practice",
+
+            // Personal Development
+            "🧠 Memory & Focus Training",
+            "✍️ Writing Skills",
+            "🗨️ Public Speaking",
+            "💡 Problem Solving",
+
+            // Other
+            "🌟 Other"
         )
 
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, categories)
@@ -123,7 +156,9 @@ class CreateGoalActivity : AppCompatActivity() {
 
         // Reset to today for default selection
         calendar.add(Calendar.DAY_OF_MONTH, -1)
-        calendar.add(Calendar.MONTH, 1) // Default to 1 month from now
+
+        // Default to 2 weeks from now (more realistic for school goals)
+        calendar.add(Calendar.WEEK_OF_YEAR, 2)
 
         val datePickerDialog = DatePickerDialog(
             this,
@@ -180,28 +215,31 @@ class CreateGoalActivity : AppCompatActivity() {
         var hasError = false
 
         if (title.isEmpty()) {
-            binding.titleLayout.error = "Title is required"
+            binding.titleLayout.error = "Goal title is required"
             hasError = true
         }
 
         if (category.isEmpty()) {
-            binding.categoryLayout.error = "Category is required"
+            binding.categoryLayout.error = "Please select a category"
             hasError = true
         }
 
         if (targetHoursStr.isEmpty()) {
-            binding.targetHoursLayout.error = "Target hours is required"
+            binding.targetHoursLayout.error = "Study hours target is required"
             hasError = true
         }
 
         val targetHours = targetHoursStr.toIntOrNull()
         if (targetHours == null || targetHours <= 0) {
-            binding.targetHoursLayout.error = "Enter a valid number of hours"
+            binding.targetHoursLayout.error = "Enter valid study hours (e.g., 10)"
+            hasError = true
+        } else if (targetHours > 500) {
+            binding.targetHoursLayout.error = "That's too many hours! Try a smaller goal"
             hasError = true
         }
 
         if (selectedDeadline == 0L) {
-            binding.deadlineLayout.error = "Deadline is required"
+            binding.deadlineLayout.error = "Please select a deadline"
             hasError = true
         }
 
@@ -211,7 +249,7 @@ class CreateGoalActivity : AppCompatActivity() {
 
         // Show loading
         binding.createButton.isEnabled = false
-        binding.createButton.text = "Creating..."
+        binding.createButton.text = "Creating your goal..."
 
         // Create goal
         createGoal(title, description, category, targetHours!!, selectedDeadline)
@@ -251,7 +289,7 @@ class CreateGoalActivity : AppCompatActivity() {
             .document(goalId)
             .set(goal)
             .addOnSuccessListener {
-                toast("Goal created successfully! 🎯")
+                toast("Goal created successfully! Let's crush it! 🎯")
 
                 // Mark that user has created a goal
                 prefsManager.hasCreatedGoal = true
@@ -271,7 +309,7 @@ class CreateGoalActivity : AppCompatActivity() {
                 }
             }
             .addOnFailureListener { e ->
-                toast("Failed to create goal: ${e.message}")
+                toast("Oops! Couldn't create goal: ${e.message}")
                 binding.createButton.isEnabled = true
                 binding.createButton.text = "Create Goal"
             }

@@ -29,8 +29,75 @@ class ProfileViewModel : ViewModel() {
     val loading: LiveData<Boolean> = _loading
 
     init {
+        // Set default achievements immediately
+        setDefaultAchievements()
+
+        // Then load actual data
         loadProfile()
         loadReflections()
+    }
+
+    private fun setDefaultAchievements() {
+        // Set default locked achievements
+        val defaultAchievements = listOf(
+            Achievement(
+                achievementId = "1",
+                name = "7-Day Streak",
+                description = "Study for 7 consecutive days",
+                iconName = "🔥",
+                points = 100,
+                requirement = 7,
+                isUnlocked = false,
+                progress = 0,
+                unlockedAt = 0
+            ),
+            Achievement(
+                achievementId = "2",
+                name = "100 Hours Club",
+                description = "Complete 100 total focus hours",
+                iconName = "⏰",
+                points = 500,
+                requirement = 100,
+                isUnlocked = false,
+                progress = 0,
+                unlockedAt = 0
+            ),
+            Achievement(
+                achievementId = "3",
+                name = "Early Bird",
+                description = "Start studying before 6 AM",
+                iconName = "🌅",
+                points = 50,
+                requirement = 1,
+                isUnlocked = false,
+                progress = 0,
+                unlockedAt = 0
+            ),
+            Achievement(
+                achievementId = "4",
+                name = "Goal Crusher",
+                description = "Complete 10 goals",
+                iconName = "🎯",
+                points = 200,
+                requirement = 10,
+                isUnlocked = false,
+                progress = 0,
+                unlockedAt = 0
+            ),
+            Achievement(
+                achievementId = "5",
+                name = "Focus Master",
+                description = "Maintain 90+ focus score for 5 sessions",
+                iconName = "💎",
+                points = 300,
+                requirement = 5,
+                isUnlocked = false,
+                progress = 0,
+                unlockedAt = 0
+            )
+        )
+        _achievements.value = defaultAchievements
+        android.util.Log.d("ProfileViewModel", "Default achievements set: ${defaultAchievements.size}")
     }
 
     private fun loadProfile() {
@@ -39,7 +106,10 @@ class ProfileViewModel : ViewModel() {
             try {
                 val userId = userRepository.getCurrentUserId()
                 if (userId != null) {
+                    android.util.Log.d("ProfileViewModel", "Loading profile for user: $userId")
+
                     userRepository.getUser(userId).onSuccess { user ->
+                        android.util.Log.d("ProfileViewModel", "User loaded: ${user.name}, streak=${user.streak}, hours=${user.totalFocusHours}")
                         _user.value = user
                         loadAchievements(user)
                     }.onFailure { error ->
@@ -66,7 +136,7 @@ class ProfileViewModel : ViewModel() {
                 points = 100,
                 requirement = 7,
                 isUnlocked = user.streak >= 7,
-                progress = user.streak,
+                progress = user.streak.coerceAtMost(7),
                 unlockedAt = if (user.streak >= 7) System.currentTimeMillis() else 0
             ),
             Achievement(
@@ -77,7 +147,7 @@ class ProfileViewModel : ViewModel() {
                 points = 500,
                 requirement = 100,
                 isUnlocked = user.totalFocusHours >= 100,
-                progress = user.totalFocusHours.toInt(),
+                progress = user.totalFocusHours.toInt().coerceAtMost(100),
                 unlockedAt = if (user.totalFocusHours >= 100) System.currentTimeMillis() else 0
             ),
             Achievement(
@@ -99,23 +169,23 @@ class ProfileViewModel : ViewModel() {
                 points = 200,
                 requirement = 10,
                 isUnlocked = false,
-                progress = 3,
+                progress = 0,
                 unlockedAt = 0
             ),
             Achievement(
                 achievementId = "5",
                 name = "Focus Master",
                 description = "Maintain 90+ focus score for 5 sessions",
-                iconName = "🎯",
+                iconName = "💎",
                 points = 300,
                 requirement = 5,
                 isUnlocked = false,
-                progress = 2,
+                progress = 0,
                 unlockedAt = 0
             )
         )
         _achievements.value = achievements
-        android.util.Log.d("ProfileViewModel", "Achievements loaded: ${achievements.size}")
+        android.util.Log.d("ProfileViewModel", "Achievements loaded: ${achievements.size}, unlocked: ${achievements.count { it.isUnlocked }}")
     }
 
     fun loadReflections() {
