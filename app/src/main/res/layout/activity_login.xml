@@ -7,7 +7,7 @@
     <data>
         <variable
             name="viewModel"
-            type="com.nigdroid.focusflow.ui.auth.LoginViewModel" />
+            type="com.nigdroid.focusflow_nitr.ui.auth.LoginViewModel" />
     </data>
 
     <ScrollView

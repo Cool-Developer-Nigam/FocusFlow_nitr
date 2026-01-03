@@ -6,13 +6,7 @@ import java.util.Calendar
 
 class FatigueCalculator(private val context: Context) {
 
-    /**
-     * Calculate fatigue level (0-100)
-     * 0-30: Fresh (Green)
-     * 31-60: Moderate (Yellow)
-     * 61-80: High (Orange)
-     * 81-100: Critical (Red)
-     */
+
     fun calculateFatigue(sessions: List<Session>): Int {
         if (sessions.isEmpty()) return 0
 

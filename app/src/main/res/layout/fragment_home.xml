@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="com.nigdroid.focusflow.ui.home.HomeViewModel" />
+            type="com.nigdroid.focusflow_nitr.ui.home.HomeViewModel" />
     </data>
 
     <ScrollView

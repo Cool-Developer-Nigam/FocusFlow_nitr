@@ -5,7 +5,7 @@
     <data>
         <variable
             name="viewModel"
-            type="com.nigdroid.focusflow.ui.leaderboard.LeaderboardViewModel" />
+            type="com.nigdroid.focusflow_nitr.ui.leaderboard.LeaderboardViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
