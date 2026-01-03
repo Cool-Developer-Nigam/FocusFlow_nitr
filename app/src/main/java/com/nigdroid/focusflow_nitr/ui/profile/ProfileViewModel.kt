@@ -11,8 +11,6 @@ import com.nigdroid.focusflow_nitr.data.model.User
 import com.nigdroid.focusflow_nitr.data.repository.ReflectionRepository
 import com.nigdroid.focusflow_nitr.data.repository.UserRepository
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 class ProfileViewModel : ViewModel() {
     private val userRepository = UserRepository()
@@ -38,19 +36,27 @@ class ProfileViewModel : ViewModel() {
     private fun loadProfile() {
         viewModelScope.launch {
             _loading.value = true
-            val userId = userRepository.getCurrentUserId()
-            if (userId != null) {
-                userRepository.getUser(userId).onSuccess { user ->
-                    _user.value = user
-                    loadAchievements(user)
+            try {
+                val userId = userRepository.getCurrentUserId()
+                if (userId != null) {
+                    userRepository.getUser(userId).onSuccess { user ->
+                        _user.value = user
+                        loadAchievements(user)
+                    }.onFailure { error ->
+                        android.util.Log.e("ProfileViewModel", "Error loading user", error)
+                    }
+                } else {
+                    android.util.Log.e("ProfileViewModel", "User ID is null")
                 }
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileViewModel", "Exception loading profile", e)
+            } finally {
+                _loading.value = false
             }
-            _loading.value = false
         }
     }
 
     private fun loadAchievements(user: User) {
-        // Mock achievements - you can load from Firebase later
         val achievements = listOf(
             Achievement(
                 achievementId = "1",
@@ -60,7 +66,8 @@ class ProfileViewModel : ViewModel() {
                 points = 100,
                 requirement = 7,
                 isUnlocked = user.streak >= 7,
-                progress = user.streak
+                progress = user.streak,
+                unlockedAt = if (user.streak >= 7) System.currentTimeMillis() else 0
             ),
             Achievement(
                 achievementId = "2",
@@ -70,7 +77,8 @@ class ProfileViewModel : ViewModel() {
                 points = 500,
                 requirement = 100,
                 isUnlocked = user.totalFocusHours >= 100,
-                progress = user.totalFocusHours.toInt()
+                progress = user.totalFocusHours.toInt(),
+                unlockedAt = if (user.totalFocusHours >= 100) System.currentTimeMillis() else 0
             ),
             Achievement(
                 achievementId = "3",
@@ -80,7 +88,8 @@ class ProfileViewModel : ViewModel() {
                 points = 50,
                 requirement = 1,
                 isUnlocked = false,
-                progress = 0
+                progress = 0,
+                unlockedAt = 0
             ),
             Achievement(
                 achievementId = "4",
@@ -90,65 +99,102 @@ class ProfileViewModel : ViewModel() {
                 points = 200,
                 requirement = 10,
                 isUnlocked = false,
-                progress = 3
+                progress = 3,
+                unlockedAt = 0
+            ),
+            Achievement(
+                achievementId = "5",
+                name = "Focus Master",
+                description = "Maintain 90+ focus score for 5 sessions",
+                iconName = "🎯",
+                points = 300,
+                requirement = 5,
+                isUnlocked = false,
+                progress = 2,
+                unlockedAt = 0
             )
         )
         _achievements.value = achievements
+        android.util.Log.d("ProfileViewModel", "Achievements loaded: ${achievements.size}")
     }
 
     fun loadReflections() {
         viewModelScope.launch {
-            val userId = userRepository.getCurrentUserId() ?: return@launch
+            try {
+                val userId = userRepository.getCurrentUserId()
+                if (userId == null) {
+                    android.util.Log.e("ProfileViewModel", "User ID is null when loading reflections")
+                    _reflections.value = emptyList()
+                    return@launch
+                }
 
-            reflectionRepository.getUserReflections(userId, 30).onSuccess { reflections ->
-                _reflections.value = reflections
+                android.util.Log.d("ProfileViewModel", "Loading reflections for user: $userId")
+
+                reflectionRepository.getUserReflections(userId, 30).onSuccess { reflections ->
+                    android.util.Log.d("ProfileViewModel", "Reflections loaded: ${reflections.size}")
+                    _reflections.value = reflections
+                }.onFailure { error ->
+                    android.util.Log.e("ProfileViewModel", "Error loading reflections", error)
+                    _reflections.value = emptyList()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileViewModel", "Exception loading reflections", e)
+                _reflections.value = emptyList()
             }
         }
     }
 
     fun addReflection(mood: String, textNote: String, voiceNoteUrl: String = "") {
         viewModelScope.launch {
-            val userId = userRepository.getCurrentUserId() ?: return@launch
+            try {
+                val userId = userRepository.getCurrentUserId()
+                if (userId == null) {
+                    android.util.Log.e("ProfileViewModel", "Cannot add reflection: User ID is null")
+                    return@launch
+                }
 
-            val reflection = Reflection(
-                userId = userId,
-                date = Timestamp.now(),
-                mood = mood,
-                textNote = textNote,
-                voiceNoteUrl = voiceNoteUrl
-            )
+                val reflection = Reflection(
+                    userId = userId,
+                    date = Timestamp.now(),
+                    mood = mood,
+                    textNote = textNote,
+                    voiceNoteUrl = voiceNoteUrl
+                )
 
-            reflectionRepository.createReflection(reflection).onSuccess {
-                loadReflections() // Reload to show new reflection
+                android.util.Log.d("ProfileViewModel", "Creating reflection for user: $userId")
+
+                reflectionRepository.createReflection(reflection).onSuccess {
+                    android.util.Log.d("ProfileViewModel", "Reflection created successfully")
+                    loadReflections() // Reload to show new reflection
+                }.onFailure { error ->
+                    android.util.Log.e("ProfileViewModel", "Error creating reflection", error)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileViewModel", "Exception adding reflection", e)
             }
         }
     }
 
     fun deleteReflection(reflectionId: String) {
         viewModelScope.launch {
-            reflectionRepository.deleteReflection(reflectionId).onSuccess {
-                loadReflections()
+            try {
+                android.util.Log.d("ProfileViewModel", "Deleting reflection: $reflectionId")
+
+                reflectionRepository.deleteReflection(reflectionId).onSuccess {
+                    android.util.Log.d("ProfileViewModel", "Reflection deleted successfully")
+                    loadReflections()
+                }.onFailure { error ->
+                    android.util.Log.e("ProfileViewModel", "Error deleting reflection", error)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileViewModel", "Exception deleting reflection", e)
             }
         }
     }
 
     fun refreshProfile() {
+        android.util.Log.d("ProfileViewModel", "Refreshing profile data")
         loadProfile()
         loadReflections()
-    }
-
-    fun formatDate(timestamp: Timestamp): String {
-        val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-        return sdf.format(timestamp.toDate())
-    }
-
-    fun getMoodEmoji(mood: String): String {
-        return when (mood.lowercase()) {
-            "great", "happy", "excellent" -> "😊"
-            "good", "okay", "fine" -> "😐"
-            "tired", "exhausted", "stressed" -> "😫"
-            "sad", "bad", "terrible" -> "😢"
-            else -> "😐"
-        }
     }
 }

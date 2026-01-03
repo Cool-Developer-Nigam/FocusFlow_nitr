@@ -13,12 +13,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
+import com.nigdroid.focusflow_nitr.R
 import com.nigdroid.focusflow_nitr.data.local.PreferencesManager
 import com.nigdroid.focusflow_nitr.data.repository.UserRepository
 import com.nigdroid.focusflow_nitr.databinding.FragmentProfileBinding
 import com.nigdroid.focusflow_nitr.ui.adapter.AchievementsAdapter
-import kotlin.getValue
-import com.nigdroid.focusflow_nitr.R
 import com.nigdroid.focusflow_nitr.ui.adapter.ReflectionsAdapter
 import com.nigdroid.focusflow_nitr.ui.auth.LoginActivity
 import com.nigdroid.focusflow_nitr.utils.gone
@@ -33,12 +32,8 @@ class ProfileFragment : Fragment() {
     private val viewModel: ProfileViewModel by viewModels()
     private val auth = FirebaseAuth.getInstance()
 
-    private val achievementsAdapter = AchievementsAdapter()
-    private val reflectionsAdapter = ReflectionsAdapter(
-        onDeleteClick = { reflection ->
-            showDeleteConfirmation(reflection.reflectionId)
-        }
-    )
+    private lateinit var achievementsAdapter: AchievementsAdapter
+    private lateinit var reflectionsAdapter: ReflectionsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,11 +53,11 @@ class ProfileFragment : Fragment() {
         setupListeners()
         observeData()
         loadFirebaseUserPhoto()
+
+        // Force load data
+        viewModel.refreshProfile()
     }
 
-    /**
-     * Load profile photo from Firebase Auth (works for Google Sign-In users)
-     */
     private fun loadFirebaseUserPhoto() {
         val currentUser = auth.currentUser
         currentUser?.let { user ->
@@ -70,7 +65,6 @@ class ProfileFragment : Fragment() {
             val displayName = user.displayName
             val email = user.email
 
-            // Display Firebase user info immediately
             if (displayName != null) {
                 binding.userName.text = displayName
             }
@@ -78,28 +72,23 @@ class ProfileFragment : Fragment() {
                 binding.userEmail.text = email
             }
 
-            // Load profile photo if available
             if (!photoUrl.isNullOrEmpty()) {
                 loadProfileImage(photoUrl)
             }
         }
     }
 
-    /**
-     * Load profile image using Glide with proper error handling
-     */
     private fun loadProfileImage(imageUrl: String) {
         Glide.with(this)
             .load(imageUrl)
             .circleCrop()
-            .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache the image
-            .placeholder(R.drawable.ic_profile) // Show placeholder while loading
-            .error(R.drawable.ic_profile) // Show default icon on error
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .placeholder(R.drawable.ic_profile)
+            .error(R.drawable.ic_profile)
             .into(binding.profileImage)
     }
 
     private fun setupEmojiLabels() {
-        // Set emojis programmatically to avoid XML encoding issues
         binding.streakLabel.text = "🔥 Streak"
         binding.pointsLabel.text = "🪙 Points"
         binding.levelLabel.text = "⭐ Level"
@@ -109,14 +98,22 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setupRecyclerViews() {
+        // Achievements RecyclerView
+        achievementsAdapter = AchievementsAdapter()
         binding.achievementsRecycler.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = achievementsAdapter
+            setHasFixedSize(true)
         }
 
+        // Reflections RecyclerView - FIXED
+        reflectionsAdapter = ReflectionsAdapter { reflection ->
+            showDeleteConfirmation(reflection.reflectionId)
+        }
         binding.reflectionsRecycler.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = reflectionsAdapter
+            setHasFixedSize(true)
         }
     }
 
@@ -129,17 +126,15 @@ class ProfileFragment : Fragment() {
             showAddReflectionDialog()
         }
 
-        // Optional: Add click listener to profile image for changing photo
         binding.profileImage.setOnClickListener {
-            // You can implement photo change functionality here
             toast("Profile photo from Google Account")
         }
     }
 
     private fun observeData() {
+        // User data
         viewModel.user.observe(viewLifecycleOwner) { user ->
             user?.let {
-                // Update user name and email if not already set by Firebase
                 if (binding.userName.text.isEmpty() || binding.userName.text == "Rahul Kumar") {
                     binding.userName.text = it.name
                 }
@@ -147,39 +142,44 @@ class ProfileFragment : Fragment() {
                     binding.userEmail.text = it.email
                 }
 
-                // Update stats
                 binding.streakValue.text = "${it.streak} days"
                 binding.pointsValue.text = "${it.points} pts"
                 binding.levelValue.text = "Level ${it.level}"
                 binding.totalHoursValue.text = "${String.format("%.1f", it.totalFocusHours)}h"
 
-                // Load avatar from Firestore if available (fallback)
                 if (it.avatarUrl.isNotEmpty()) {
                     loadProfileImage(it.avatarUrl)
                 }
             }
         }
 
+        // Achievements
         viewModel.achievements.observe(viewLifecycleOwner) { achievements ->
+            android.util.Log.d("ProfileFragment", "Achievements updated: ${achievements.size}")
             achievementsAdapter.submitList(achievements)
 
             val unlockedCount = achievements.count { it.isUnlocked }
             binding.achievementsCount.text = "$unlockedCount/${achievements.size} Unlocked"
         }
 
+        // Reflections - FIXED
         viewModel.reflections.observe(viewLifecycleOwner) { reflections ->
+            android.util.Log.d("ProfileFragment", "Reflections updated: ${reflections.size}")
+
             if (reflections.isEmpty()) {
                 binding.reflectionsRecycler.gone()
                 binding.emptyReflectionsText.visible()
+                binding.emptyReflectionsText.text = "No reflections yet. Add your first reflection!"
             } else {
                 binding.reflectionsRecycler.visible()
                 binding.emptyReflectionsText.gone()
-                reflectionsAdapter.submitList(reflections)
+                reflectionsAdapter.submitList(reflections.toList()) // Convert to new list
             }
 
             binding.reflectionsCount.text = "${reflections.size} reflections"
         }
 
+        // Loading state
         viewModel.loading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) {
                 binding.progressBar.visible()
@@ -265,8 +265,8 @@ class ProfileFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh profile photo when returning to fragment
         loadFirebaseUserPhoto()
+        viewModel.refreshProfile()
     }
 
     override fun onDestroyView() {
