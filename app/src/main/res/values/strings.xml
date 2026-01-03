@@ -1,5 +1,125 @@
 <resources>
     <string name="app_name">FocusFlow_nitr</string>
-    <!-- TODO: Remove or change this placeholder text -->
+
+
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- Welcome & Onboarding -->
+    <string name="welcome_title">Welcome to FocusFlow</string>
+    <string name="welcome_subtitle">Track your focus, achieve your goals</string>
+    <string name="get_started">Get Started</string>
+
+    <!-- Authentication -->
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="or_continue_with">Or continue with</string>
+    <string name="google_signin">Sign in with Google</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="logout">Logout</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_goals">Goals</string>
+    <string name="nav_insights">Insights</string>
+    <string name="nav_leaderboard">Leaderboard</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Goals -->
+    <string name="my_goals">My Goals</string>
+    <string name="add_goal">Add Goal</string>
+    <string name="active_goals">Active Goals</string>
+    <string name="completed_goals">Completed Goals</string>
+    <string name="no_goals_yet">No goals yet</string>
+    <string name="create_your_first_goal">Create your first goal to start tracking your progress</string>
+    <string name="mark_as_complete">Mark as Complete</string>
+    <string name="delete">Delete</string>
+    <string name="menu">Menu</string>
+    <string name="goal_created">Goal created successfully!</string>
+    <string name="goal_updated">Goal updated successfully!</string>
+    <string name="goal_completed">Goal completed! 🎉</string>
+    <string name="goal_deleted">Goal deleted</string>
+
+    <!-- Profile -->
+    <string name="study_time">Study Time</string>
+    <string name="sessions">Sessions</string>
+    <string name="day_streak">Day Streak</string>
+    <string name="achievements">Achievements</string>
+    <string name="settings">Settings</string>
+    <string name="notifications">Notifications</string>
+    <string name="daily_goal">Daily Goal</string>
+    <string name="theme">Theme</string>
+    <string name="dark">Dark</string>
+    <string name="privacy_settings">Privacy Settings</string>
+    <string name="about">About</string>
+    <string name="version_1_0">v1.0</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="change_photo">Change Photo</string>
+
+    <!-- Permissions -->
+    <string name="permissions_required">Permissions Required</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="enable_service">Enable Service</string>
+    <string name="screen_time_permission">Screen Time Tracking</string>
+    <string name="typing_monitor_permission">Typing Monitor</string>
+    <string name="permission_granted">Permission Granted</string>
+    <string name="permission_denied">Permission Denied</string>
+
+    <!-- Focus Session -->
+    <string name="start_session">Start Session</string>
+    <string name="end_session">End Session</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="session_complete">Session Complete!</string>
+    <string name="focus_score">Focus Score</string>
+
+    <!-- Common -->
+    <string name="loading">Loading…</string>
+    <string name="error">Error</string>
+    <string name="retry">Retry</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="done">Done</string>
+    <string name="skip">Skip</string>
+    <string name="continue_text">Continue</string>
+    <string name="accessibility_service_description">FocusFlow Typing Monitor tracks your typing patterns to help improve productivity. This service only collects statistics and does not record what you type. Your privacy is fully protected.</string>
+
+    <string name="streak_label">🔥 Streak</string>
+    <string name="points_label">🪙 Points</string>
+    <string name="level_label">⭐ Level</string>
+    <string name="total_hours_label">⏰ Total</string>
+    <string name="achievements_title">🏅 Achievements</string>
+    <string name="reflections_title">📝 Daily Reflections</string>
+
+    <!-- Profile Screen Values -->
+    <string name="streak_days">%d days</string>
+    <string name="points_value">%d pts</string>
+    <string name="level_value">Level %d</string>
+    <string name="total_hours_value">%.1fh</string>
+    <string name="achievements_unlocked">%d/%d Unlocked</string>
+    <string name="reflections_count">%d reflections</string>
+
+    <!-- Empty States -->
+    <string name="empty_reflections">No reflections yet. Tap + to add your first reflection!</string>
+
+    <!-- Dialog Strings -->
+    <string name="add_reflection_title">Add Today\'s Reflection</string>
+    <string name="reflection_saved">Reflection saved!</string>
+    <string name="reflection_deleted">Reflection deleted</string>
+    <string name="please_write_note">Please write a note</string>
+    <string name="delete_reflection_title">Delete Reflection?</string>
+    <string name="delete_reflection_message">This action cannot be undone.</string>
+
+    <!-- Logout -->
+
+    <string name="logout_title">Logout</string>
+    <string name="logout_message">Are you sure you want to logout?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
 </resources>
