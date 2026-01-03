@@ -12,11 +12,11 @@ import com.nigdroid.focusflow_nitr.service.InsightsData
 import com.nigdroid.focusflow_nitr.service.InsightsEngine
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import kotlin.compareTo
 
 enum class InsightsPeriod {
     TODAY, WEEK, MONTH
 }
+
 class InsightsViewModel(application: Application) : AndroidViewModel(application) {
     private val sessionRepository = SessionRepository()
     private val goalRepository = GoalRepository()
@@ -45,12 +45,15 @@ class InsightsViewModel(application: Application) : AndroidViewModel(application
             val userId = userRepository.getCurrentUserId()
 
             if (userId == null) {
+                android.util.Log.e("InsightsViewModel", "User ID is null")
                 setDefaultData()
                 _loading.value = false
                 return@launch
             }
 
             try {
+                android.util.Log.d("InsightsViewModel", "Loading insights for period: $period, userId: $userId")
+
                 val sessionsResult = sessionRepository.getUserSessions(userId)
                 val goalsResult = goalRepository.getUserGoals(userId)
 
@@ -58,15 +61,25 @@ class InsightsViewModel(application: Application) : AndroidViewModel(application
                     val allSessions = sessionsResult.getOrNull() ?: emptyList()
                     val goals = goalsResult.getOrNull() ?: emptyList()
 
+                    android.util.Log.d("InsightsViewModel", "Loaded ${allSessions.size} sessions, ${goals.size} goals")
+
                     val filteredSessions = filterSessionsByPeriod(allSessions, period)
+                    android.util.Log.d("InsightsViewModel", "Filtered to ${filteredSessions.size} sessions for period")
 
                     if (filteredSessions.isEmpty()) {
+                        android.util.Log.d("InsightsViewModel", "No sessions found, showing default data")
                         setDefaultData()
                     } else {
-                        _insights.value = insightsEngine.generateInsights(filteredSessions, goals)
-                        _chartData.value = calculateChartData(filteredSessions, period)
+                        val insightsData = insightsEngine.generateInsights(filteredSessions, goals)
+                        _insights.value = insightsData
+
+                        val chartData = calculateChartData(filteredSessions, period)
+                        _chartData.value = chartData
+
+                        android.util.Log.d("InsightsViewModel", "Insights generated successfully with ${chartData.size} data points")
                     }
                 } else {
+                    android.util.Log.e("InsightsViewModel", "Failed to load sessions or goals")
                     setDefaultData()
                 }
             } catch (e: Exception) {
@@ -110,74 +123,118 @@ class InsightsViewModel(application: Application) : AndroidViewModel(application
         val calendar = Calendar.getInstance()
         val dailyData = mutableListOf<DailyData>()
 
-        val daysToShow = when (period) {
-            InsightsPeriod.TODAY -> 24
-            InsightsPeriod.WEEK -> 7
-            InsightsPeriod.MONTH -> 30
-        }
+        when (period) {
+            InsightsPeriod.TODAY -> {
+                // Hourly data for today
+                for (hour in 0..23) {
+                    val hourStart = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, hour)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                    }.timeInMillis
 
-        if (period == InsightsPeriod.TODAY) {
-            for (hour in 0..23) {
-                val hourStart = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, hour)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                }.timeInMillis
+                    val hourEnd = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, hour)
+                        set(Calendar.MINUTE, 59)
+                        set(Calendar.SECOND, 59)
+                    }.timeInMillis
 
-                val hourEnd = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, hour)
-                    set(Calendar.MINUTE, 59)
-                    set(Calendar.SECOND, 59)
-                }.timeInMillis
+                    val hourSessions = sessions.filter {
+                        val time = it.startTime.toDate().time
+                        time >= hourStart && time <= hourEnd
+                    }
 
-                val hourSessions = sessions.filter {
-                    val time = it.startTime.toDate().time
-                    time >= hourStart && time <= hourEnd
-                }
+                    val totalHours = hourSessions.sumOf { it.duration / 3600000.0 }
+                    val avgFocusScore = if (hourSessions.isNotEmpty()) {
+                        hourSessions.map { it.focusScore }.average().toInt()
+                    } else 0
 
-                dailyData.add(
-                    DailyData(
-                        dayName = String.format("%02d:00", hour),
-                        hours = hourSessions.sumOf { it.duration / 3600000.0 },
-                        focusScore = if (hourSessions.isNotEmpty()) {
-                            hourSessions.map { it.focusScore }.average().toInt()
-                        } else 0
+                    dailyData.add(
+                        DailyData(
+                            dayName = String.format("%02d:00", hour),
+                            hours = totalHours,
+                            focusScore = avgFocusScore
+                        )
                     )
-                )
+                }
             }
-        } else {
-            for (i in (daysToShow - 1) downTo 0) {
-                calendar.add(Calendar.DAY_OF_YEAR, if (i == daysToShow - 1) -(daysToShow - 1) else 1)
-                val dayStart = calendar.apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                }.timeInMillis
+            InsightsPeriod.WEEK -> {
+                // Daily data for last 7 days
+                val today = Calendar.getInstance()
+                for (i in 6 downTo 0) {
+                    val dayCalendar = Calendar.getInstance().apply {
+                        add(Calendar.DAY_OF_YEAR, -i)
+                    }
 
-                val dayEnd = calendar.apply {
-                    set(Calendar.HOUR_OF_DAY, 23)
-                    set(Calendar.MINUTE, 59)
-                    set(Calendar.SECOND, 59)
-                }.timeInMillis
+                    val dayStart = dayCalendar.apply {
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                    }.timeInMillis
 
-                val daySessions = sessions.filter {
-                    val time = it.startTime.toDate().time
-                    time >= dayStart && time <= dayEnd
-                }
+                    val dayEnd = dayCalendar.apply {
+                        set(Calendar.HOUR_OF_DAY, 23)
+                        set(Calendar.MINUTE, 59)
+                        set(Calendar.SECOND, 59)
+                    }.timeInMillis
 
-                dailyData.add(
-                    DailyData(
-                        dayName = if (period == InsightsPeriod.WEEK) {
-                            getDayName(calendar)
-                        } else {
-                            "${calendar.get(Calendar.DAY_OF_MONTH)}"
-                        },
-                        hours = daySessions.sumOf { it.duration / 3600000.0 },
-                        focusScore = if (daySessions.isNotEmpty()) {
-                            daySessions.map { it.focusScore }.average().toInt()
-                        } else 0
+                    val daySessions = sessions.filter {
+                        val time = it.startTime.toDate().time
+                        time >= dayStart && time <= dayEnd
+                    }
+
+                    val totalHours = daySessions.sumOf { it.duration / 3600000.0 }
+                    val avgFocusScore = if (daySessions.isNotEmpty()) {
+                        daySessions.map { it.focusScore }.average().toInt()
+                    } else 0
+
+                    dailyData.add(
+                        DailyData(
+                            dayName = getDayName(dayCalendar),
+                            hours = totalHours,
+                            focusScore = avgFocusScore
+                        )
                     )
-                )
+                }
+            }
+            InsightsPeriod.MONTH -> {
+                // Weekly data for last 4 weeks
+                for (weekOffset in 3 downTo 0) {
+                    val weekStart = Calendar.getInstance().apply {
+                        add(Calendar.WEEK_OF_YEAR, -weekOffset)
+                        set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                    }.timeInMillis
+
+                    val weekEnd = Calendar.getInstance().apply {
+                        add(Calendar.WEEK_OF_YEAR, -weekOffset)
+                        set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
+                        add(Calendar.DAY_OF_YEAR, 6)
+                        set(Calendar.HOUR_OF_DAY, 23)
+                        set(Calendar.MINUTE, 59)
+                        set(Calendar.SECOND, 59)
+                    }.timeInMillis
+
+                    val weekSessions = sessions.filter {
+                        val time = it.startTime.toDate().time
+                        time >= weekStart && time <= weekEnd
+                    }
+
+                    val totalHours = weekSessions.sumOf { it.duration / 3600000.0 }
+                    val avgFocusScore = if (weekSessions.isNotEmpty()) {
+                        weekSessions.map { it.focusScore }.average().toInt()
+                    } else 0
+
+                    dailyData.add(
+                        DailyData(
+                            dayName = "Week ${4 - weekOffset}",
+                            hours = totalHours,
+                            focusScore = avgFocusScore
+                        )
+                    )
+                }
             }
         }
 
@@ -204,7 +261,20 @@ class InsightsViewModel(application: Application) : AndroidViewModel(application
             )
         )
 
-        _chartData.value = emptyList()
+        // Generate empty chart data based on current period
+        val emptyChartData = when (currentPeriod) {
+            InsightsPeriod.TODAY -> (0..23).map { hour ->
+                DailyData(String.format("%02d:00", hour), 0.0, 0)
+            }
+            InsightsPeriod.WEEK -> listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").map { day ->
+                DailyData(day, 0.0, 0)
+            }
+            InsightsPeriod.MONTH -> (1..4).map { week ->
+                DailyData("Week $week", 0.0, 0)
+            }
+        }
+
+        _chartData.value = emptyChartData
     }
 
     private fun getDayName(calendar: Calendar): String {

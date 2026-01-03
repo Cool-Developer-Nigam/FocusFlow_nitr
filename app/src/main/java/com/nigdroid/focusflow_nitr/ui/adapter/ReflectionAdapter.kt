@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nigdroid.focusflow_nitr.data.model.Reflection
 import com.nigdroid.focusflow_nitr.databinding.ItemReflectionBinding
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 class ReflectionsAdapter(
     private val onDeleteClick: (Reflection) -> Unit

@@ -13,15 +13,24 @@ class ReflectionRepository {
         return try {
             val reflectionRef = firestore.collection("reflections").document()
             val newReflection = reflection.copy(reflectionId = reflectionRef.id)
+
+            android.util.Log.d("ReflectionRepository", "Creating reflection with ID: ${reflectionRef.id}")
+
             reflectionRef.set(newReflection).await()
+
+            android.util.Log.d("ReflectionRepository", "Reflection created successfully")
+
             Result.success(newReflection)
         } catch (e: Exception) {
+            android.util.Log.e("ReflectionRepository", "Error creating reflection", e)
             Result.failure(e)
         }
     }
 
     suspend fun getUserReflections(userId: String, limit: Int = 50): Result<List<Reflection>> {
         return try {
+            android.util.Log.d("ReflectionRepository", "Fetching reflections for user: $userId")
+
             val snapshot = firestore.collection("reflections")
                 .whereEqualTo("userId", userId)
                 .orderBy("date", Query.Direction.DESCENDING)
@@ -29,11 +38,20 @@ class ReflectionRepository {
                 .get()
                 .await()
 
-            val reflections = snapshot.documents.mapNotNull {
-                it.toObject(Reflection::class.java)
+            val reflections = snapshot.documents.mapNotNull { doc ->
+                try {
+                    doc.toObject(Reflection::class.java)?.copy(reflectionId = doc.id)
+                } catch (e: Exception) {
+                    android.util.Log.e("ReflectionRepository", "Error parsing reflection: ${doc.id}", e)
+                    null
+                }
             }
+
+            android.util.Log.d("ReflectionRepository", "Fetched ${reflections.size} reflections")
+
             Result.success(reflections)
         } catch (e: Exception) {
+            android.util.Log.e("ReflectionRepository", "Error fetching reflections", e)
             Result.failure(e)
         }
     }
@@ -50,6 +68,7 @@ class ReflectionRepository {
             val reflection = snapshot.documents.firstOrNull()?.toObject(Reflection::class.java)
             Result.success(reflection)
         } catch (e: Exception) {
+            android.util.Log.e("ReflectionRepository", "Error getting reflection by date", e)
             Result.failure(e)
         }
     }
@@ -62,18 +81,25 @@ class ReflectionRepository {
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
+            android.util.Log.e("ReflectionRepository", "Error updating reflection", e)
             Result.failure(e)
         }
     }
 
     suspend fun deleteReflection(reflectionId: String): Result<Unit> {
         return try {
+            android.util.Log.d("ReflectionRepository", "Deleting reflection: $reflectionId")
+
             firestore.collection("reflections")
                 .document(reflectionId)
                 .delete()
                 .await()
+
+            android.util.Log.d("ReflectionRepository", "Reflection deleted successfully")
+
             Result.success(Unit)
         } catch (e: Exception) {
+            android.util.Log.e("ReflectionRepository", "Error deleting reflection", e)
             Result.failure(e)
         }
     }

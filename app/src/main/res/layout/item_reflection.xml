@@ -1,78 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardBackgroundColor="@color/background_secondary"
+    app:cardBackgroundColor="@color/background_dark"
     app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    app:cardElevation="0dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/glass_border">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
 
+        <!-- Mood Emoji -->
         <TextView
             android:id="@+id/moodEmoji"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:text="😊"
-            android:textSize="32sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:textSize="28sp"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
 
+        <!-- Date Text -->
         <TextView
             android:id="@+id/dateText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="Dec 27, 2024"
-            android:textColor="@color/text_primary"
+            android:text="Jan 04, 2026"
             android:textSize="14sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/deleteButton"
+            android:textColor="@color/text_primary"
+            app:layout_constraintTop_toTopOf="@id/moodEmoji"
             app:layout_constraintStart_toEndOf="@id/moodEmoji"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toStartOf="@id/deleteButton"/>
 
+        <!-- Note Text -->
         <TextView
             android:id="@+id/noteText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginTop="4dp"
-            android:text="Great progress today! Understood calculus concepts."
+            android:text="Today was a productive day..."
+            android:textSize="14sp"
             android:textColor="@color/text_secondary"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toStartOf="@id/deleteButton"
+            android:maxLines="2"
+            android:ellipsize="end"
+            app:layout_constraintTop_toBottomOf="@id/dateText"
             app:layout_constraintStart_toEndOf="@id/moodEmoji"
-            app:layout_constraintTop_toBottomOf="@id/dateText" />
+            app:layout_constraintEnd_toStartOf="@id/deleteButton"/>
 
-        <ImageButton
+        <!-- Voice Note Indicator -->
+        <ImageView
             android:id="@+id/voiceNoteIndicator"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginStart="12dp"
             android:layout_marginTop="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Voice note"
-            android:src="@android:drawable/ic_btn_speak_now"
+            android:src="@drawable/ic_mic"
             android:visibility="gone"
-            app:layout_constraintStart_toEndOf="@id/moodEmoji"
             app:layout_constraintTop_toBottomOf="@id/noteText"
+            app:layout_constraintStart_toEndOf="@id/moodEmoji"
             app:tint="@color/purple_primary" />
 
+        <!-- Delete Button -->
         <ImageButton
             android:id="@+id/deleteButton"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_delete"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Delete reflection"
-            android:src="@android:drawable/ic_menu_delete"
-            android:tint="@color/error_red"
+            app:layout_constraintTop_toTopOf="@id/moodEmoji"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:tint="@color/error_red" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
