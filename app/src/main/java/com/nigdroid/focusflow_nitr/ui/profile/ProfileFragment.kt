@@ -18,6 +18,12 @@ import com.nigdroid.focusflow_nitr.data.repository.UserRepository
 import com.nigdroid.focusflow_nitr.databinding.FragmentProfileBinding
 import com.nigdroid.focusflow_nitr.ui.adapter.AchievementsAdapter
 import kotlin.getValue
+import com.nigdroid.focusflow_nitr.R
+import com.nigdroid.focusflow_nitr.ui.adapter.ReflectionsAdapter
+import com.nigdroid.focusflow_nitr.ui.auth.LoginActivity
+import com.nigdroid.focusflow_nitr.utils.gone
+import com.nigdroid.focusflow_nitr.utils.toast
+import com.nigdroid.focusflow_nitr.utils.visible
 
 class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
