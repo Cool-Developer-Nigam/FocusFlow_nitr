@@ -12,6 +12,27 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FocusFlow_nitr">
         <activity
+            android:name=".ui.splash.SplashActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.setup.PermissionsSetupActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.onboarding.OnboardingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.goals.GoalsFragment"
+            android:exported="false" />
+        <activity
+            android:name=".ui.goals.GoalDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.goals.CreateGoalActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.focus.FocusSessionActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.auth.LoginActivity"
             android:exported="false" />
         <activity
